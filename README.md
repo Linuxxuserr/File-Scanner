@@ -62,6 +62,9 @@ A known-malware hash match short-circuits straight to `CRITICAL`.
 ## Usage
 
 ```bash
+# Install the needed packages
+python scanner.py install
+
 # Scan a single file
 python scanner.py scan ./suspicious.exe
 
