@@ -61,10 +61,8 @@ REPORT_DIR = os.path.join(BASE_DIR, "reports")
 KNOWN_MALWARE_DB = os.path.join(BASE_DIR, "malware_hashes.json")
 VT_API_KEY = os.environ.get("VT_API_KEY", "")
 
-# URL to fetch the canonical requirements list from for `install` command
 REQUIREMENTS_URL = "https://raw.githubusercontent.com/Linuxxuserr/File-Scanner/refs/heads/main/requirements.txt"
 
-# Maps the importable module name -> the pip package name to install
 PACKAGE_MAP = {
     "requests": "requests",
     "watchdog": "watchdog",
@@ -110,7 +108,6 @@ class C:
     DIM = "\033[2m"
     RESET = "\033[0m"
 
-# ──────────────────────── DEPENDENCY INSTALLER ────────────────────────
 
 def get_missing_packages() -> list:
     """Return the pip package names for any PACKAGE_MAP entry not importable."""
@@ -178,8 +175,6 @@ def install_packages_cmd():
     ]
 
     if not to_install:
-        # Fallback: nothing in the fetched file matched what's missing locally,
-        # just install the missing package names directly.
         to_install = missing
 
     for requirement in to_install:
@@ -210,7 +205,6 @@ def ensure_dependencies_or_exit():
         print(f"{C.YELLOW}Note: optional packages not installed: {', '.join(missing)}{C.RESET}")
         print(f"{C.YELLOW}Run '{os.path.basename(sys.argv[0])} install' to add them.{C.RESET}\n")
 
-# ──────────────────────── MALWARE HASH DB ────────────────────────
 
 def load_malware_db() -> dict:
     db = {"md5": set(), "sha1": set(), "sha256": set()}
@@ -230,7 +224,6 @@ def save_malware_db(db: dict):
     with open(KNOWN_MALWARE_DB, "w") as f:
         json.dump({k: list(v) for k, v in db.items()}, f, indent=2)
 
-# ──────────────────────── HASHING ────────────────────────
 
 def compute_hashes(filepath: str) -> dict:
     h = {"md5": hashlib.md5(), "sha1": hashlib.sha1(),
@@ -241,7 +234,6 @@ def compute_hashes(filepath: str) -> dict:
                 v.update(chunk)
     return {k: v.hexdigest() for k, v in h.items()}
 
-# ──────────────────────── ENTROPY ────────────────────────
 
 def compute_entropy(data: bytes) -> float:
     if not data:
@@ -272,7 +264,6 @@ def compute_entropy_analysis(filepath: str) -> dict:
         "high_ratio": high / len(entropies) if entropies else 0,
     }
 
-# ──────────────────────── MAGIC / MIME ────────────────────────
 
 MAGIC_BYTES = {
     b"MZ": "PE executable",
@@ -314,7 +305,6 @@ def detect_mime(filepath: str) -> str:
     _, ext = os.path.splitext(filepath)
     return ext_map.get(ext.lower(), "application/octet-stream")
 
-# ──────────────────────── PE ANALYSIS ────────────────────────
 
 class PEAnalyzer:
     @staticmethod
@@ -358,7 +348,6 @@ class PEAnalyzer:
             info["error"] = str(e)
         return info
 
-# ──────────────────────── TEXT-BASED ANALYSIS ────────────────────────
 
 DANGEROUS_IMPORTS_PY = [
     "os.system", "subprocess", "ctypes", "ctypes.windll", "ctypes.CDLL",
@@ -982,7 +971,6 @@ def signature_scan(filepath: str, data: bytes = None) -> list:
     return matches
 
 
-# ──────────────────────── CLAMAV ENGINE ────────────────────────
 
 def clamav_scan(filepath: str, socket_path: str = "/run/clamav/clamd.ctl",
                 tcp_host: str = "127.0.0.1", tcp_port: int = 3310) -> Optional[dict]:
@@ -1044,7 +1032,6 @@ def clamav_scan(filepath: str, socket_path: str = "/run/clamav/clamd.ctl",
     return None
 
 
-# ──────────────────────── VIRUSTOTAL ENGINE ────────────────────────
 
 def virustotal_hash_lookup(hash_val: str, api_key: str = "") -> Optional[dict]:
     if not HAS_REQUESTS:
@@ -1178,7 +1165,6 @@ def virustotal_file_upload(filepath: str, api_key: str = "") -> Optional[dict]:
         return None
 
 
-# ──────────────────────── FULL SCAN ────────────────────────
 
 def scan_file(filepath: str, malware_db: dict = None, vt_key: str = "",
               skip_vt: bool = False, skip_vt_upload: bool = False,
@@ -1283,7 +1269,6 @@ def scan_file(filepath: str, malware_db: dict = None, vt_key: str = "",
     return result
 
 
-# ──────────────────────── QUARANTINE ────────────────────────
 
 def quarantine_file(filepath: str) -> str:
     os.makedirs(QUARANTINE_DIR, exist_ok=True)
@@ -1294,7 +1279,6 @@ def quarantine_file(filepath: str) -> str:
     return dest
 
 
-# ──────────────────────── REPORTING ────────────────────────
 
 def print_result(result: ScanResult):
     level = result.risk_level
@@ -1420,7 +1404,6 @@ def save_report(results: list, output_dir: str = None) -> str:
     return report_path
 
 
-# ──────────────────────── FILE WATCHER ────────────────────────
 
 if HAS_WATCHDOG:
     class ScanHandler(FileSystemEventHandler):
