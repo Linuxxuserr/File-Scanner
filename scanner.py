@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-"""
-Advanced Multi-Engine File Scanner & Threat Detector v3.1
-==========================================================
-Multi-engine scanning:
-  1. Local heuristic engine (hash, entropy, signatures, behavioral analysis)
-  2. ClamAV backend (clamd daemon or clamscan CLI)
-  3. VirusTotal API (hash lookup + full file upload)
-  Combined reporting from all engines with unified risk scoring.
-"""
-
 import hashlib
 import math
 import os
